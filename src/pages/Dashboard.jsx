@@ -1,0 +1,59 @@
+﻿import { useMemo, useState } from 'react';
+import { Filters } from '../components/Filters';
+import { KpiCards } from '../components/KpiCards';
+import { Charts } from '../components/Charts';
+import { useSheetData } from '../hooks/useSheetData';
+import { aggregateTotals } from '../lib/utils';
+
+const initialFilters = Object.freeze({ date: null, from: null, to: null, search: '' });
+
+export function Dashboard() {
+  const [filters, setFilters] = useState(initialFilters);
+  const { filteredData, loading, error, refetch, lastUpdated } = useSheetData(filters);
+
+  const totals = useMemo(() => aggregateTotals(filteredData), [filteredData]);
+
+  return (
+    <div className="space-y-6">
+      <Filters value={filters} onChange={setFilters} />
+
+      {loading && (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {[...Array(5)].map((_, idx) => (
+            <div key={idx} className="h-24 animate-pulse rounded-lg bg-slate-200" />
+          ))}
+          <div className="xl:col-span-5 space-y-4">
+            <div className="h-80 animate-pulse rounded-lg bg-slate-200" />
+            <div className="h-80 animate-pulse rounded-lg bg-slate-200" />
+          </div>
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
+          <p className="font-semibold">डेटा लोड करने में समस्या</p>
+          <p className="mt-2 text-sm">{error.message}</p>
+          <button
+            type="button"
+            onClick={refetch}
+            className="mt-4 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+          >
+            पुनः प्रयास करें
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          <KpiCards totals={totals} lastUpdated={lastUpdated} />
+          <Charts rows={filteredData} />
+          {filteredData.length === 0 && (
+            <p className="rounded-lg border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+              चयनित फिल्टर के लिए कोई डेटा उपलब्ध नहीं है।
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
