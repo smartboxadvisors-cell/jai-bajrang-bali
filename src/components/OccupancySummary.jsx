@@ -17,17 +17,11 @@ export function OccupancySummary({ summary }) {
 
   const {
     date,
-    totalPeople,
     occupiedRooms,
     vacantRooms,
     roomsFilled,
-    roomsVacant,
-    breakdown = {}
+    roomsVacant
   } = summary;
-
-  const maleCount = breakdown.male ?? 0;
-  const femaleCount = breakdown.female ?? 0;
-  const childrenCount = breakdown.children ?? 0;
 
   const occupiedList = Array.isArray(occupiedRooms) ? occupiedRooms : [];
   const vacantList = Array.isArray(vacantRooms) ? vacantRooms : [];
@@ -40,25 +34,6 @@ export function OccupancySummary({ summary }) {
         <span>Present status for {date ? formatDateLabel(date) : 'Unknown date'}</span>
         <span className="text-xs text-slate-500">Guests counted when arrival is on/before the selected day and exit is empty or later.</span>
       </header>
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <article className="rounded-md border border-slate-200 p-4">
-          <p className="text-sm text-slate-500">People staying</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">{formatNumber(totalPeople)}</p>
-        </article>
-        <article className="rounded-md border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm text-blue-600">Male</p>
-          <p className="mt-2 text-2xl font-semibold text-blue-900">{formatNumber(maleCount)}</p>
-        </article>
-        <article className="rounded-md border border-rose-200 bg-rose-50 p-4">
-          <p className="text-sm text-rose-600">Female</p>
-          <p className="mt-2 text-2xl font-semibold text-rose-900">{formatNumber(femaleCount)}</p>
-        </article>
-        <article className="rounded-md border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm text-amber-600">Children</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-900">{formatNumber(childrenCount)}</p>
-        </article>
-      </div>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <article className="rounded-md border border-slate-200 p-4">

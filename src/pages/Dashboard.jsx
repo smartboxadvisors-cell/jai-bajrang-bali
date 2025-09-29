@@ -1,7 +1,7 @@
 ﻿import { useMemo, useState } from 'react';
 import { Filters } from '../components/Filters';
-import { KpiCards } from '../components/KpiCards';
 import { Charts } from '../components/Charts';
+import { KpiCards } from '../components/KpiCards';
 import { OccupancySummary } from '../components/OccupancySummary';
 import { useSheetData } from '../hooks/useSheetData';
 import { aggregateTotals, computeOccupancySummary } from '../lib/utils';
@@ -34,14 +34,17 @@ export function Dashboard() {
       <Filters value={filters} onChange={setFilters} />
 
       {loading && (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {[...Array(5)].map((_, idx) => (
-            <div key={idx} className="h-24 animate-pulse rounded-lg bg-slate-200" />
-          ))}
-          <div className="xl:col-span-5 space-y-4">
-            <div className="h-80 animate-pulse rounded-lg bg-slate-200" />
-            <div className="h-80 animate-pulse rounded-lg bg-slate-200" />
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[...Array(5)].map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-20 animate-pulse rounded-lg bg-slate-200 ${idx === 4 ? 'sm:col-span-2' : ''}`}
+              />
+            ))}
           </div>
+          <div className="h-48 animate-pulse rounded-lg bg-slate-200" />
+          <div className="h-80 animate-pulse rounded-lg bg-slate-200" />
         </div>
       )}
 

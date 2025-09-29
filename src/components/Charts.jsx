@@ -13,7 +13,6 @@ import { Bar, Pie } from 'react-chartjs-2';
 import {
   buildDailyStackedDataset,
   buildGenderPieDataset,
-  buildOriginBarDataset,
   buildStateBarDataset
 } from '../lib/utils';
 
@@ -46,8 +45,6 @@ export function Charts({ rows }) {
   const pieData = useMemo(() => buildGenderPieDataset(debouncedRows), [debouncedRows]);
   const dailyData = useMemo(() => buildDailyStackedDataset(debouncedRows), [debouncedRows]);
   const stateData = useMemo(() => buildStateBarDataset(debouncedRows, 12), [debouncedRows]);
-  const originData = useMemo(() => buildOriginBarDataset(debouncedRows, 10), [debouncedRows]);
-
   return (
     <section className="mt-8 grid gap-6 xl:grid-cols-2">
       <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -81,21 +78,6 @@ export function Charts({ rows }) {
               scales: {
                 x: { stacked: true },
                 y: { stacked: true, beginAtZero: true }
-              }
-            }}
-          />
-        </div>
-      </article>
-      <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-2">
-        <h2 className="text-base font-semibold text-slate-700">शीर्ष 10 स्थान</h2>
-        <div className="mt-4 h-80">
-          <Bar
-            data={originData}
-            options={{
-              ...defaultOptions,
-              indexAxis: 'y',
-              scales: {
-                x: { beginAtZero: true }
               }
             }}
           />
