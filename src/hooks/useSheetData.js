@@ -25,10 +25,11 @@ export const useSheetData = (filters = DEFAULT_FILTERS) => {
 
   const fetchFromCsv = useCallback(
     async (signal) => {
-      if (!isConfigured(CONFIG.SHEET_ID) || !isConfigured(CONFIG.SHEET_NAME)) {
-        throw new Error('कृपया CONFIG में SHEET_ID और SHEET_NAME सेट करें।');
+      const hasGid = isConfigured(CONFIG.SHEET_GID ?? '');
+      if (!isConfigured(CONFIG.SHEET_ID) || (!hasGid && !isConfigured(CONFIG.SHEET_NAME))) {
+        throw new Error('कृपया CONFIG में SHEET_ID और SHEET_NAME (या SHEET_GID) सेट करें');
       }
-      const url = sheetCsvUrl(CONFIG.SHEET_ID, CONFIG.SHEET_NAME);
+      const url = sheetCsvUrl(CONFIG.SHEET_ID, CONFIG.SHEET_NAME, hasGid ? CONFIG.SHEET_GID : undefined, CONFIG.PUBLISHED_CSV_URL);
       const res = await fetch(url, {
         method: 'GET',
         cache: 'no-store',
@@ -36,7 +37,7 @@ export const useSheetData = (filters = DEFAULT_FILTERS) => {
         signal
       });
       if (!res.ok) {
-        throw new Error(`Google Sheet से डेटा पढ़ा नहीं जा सका (स्थिति ${res.status})`);
+        throw new Error(`Google Sheet को पढ़ने में समस्या (स्थिति ${res.status})`);
       }
       const text = await res.text();
       const rows = parseCsvRows(text);
@@ -58,11 +59,11 @@ export const useSheetData = (filters = DEFAULT_FILTERS) => {
         signal
       });
       if (!res.ok) {
-        throw new Error(`Apps Script JSON endpoint से डेटा नहीं मिल सका (स्थिति ${res.status})`);
+        throw new Error(`Apps Script JSON endpoint से डेटा नहीं मिला (स्थिति ${res.status})`);
       }
       const payload = await res.json();
       if (!payload?.ok) {
-        throw new Error('Apps Script JSON endpoint ने ok:true नहीं लौटाया।');
+        throw new Error('Apps Script JSON endpoint ने ok:true नहीं लौटाया');
       }
       return ensureArray(payload.data).map(normalizeSheetRow);
     },
@@ -128,3 +129,4 @@ export const useSheetData = (filters = DEFAULT_FILTERS) => {
     lastUpdated: lastFetchRef.current
   };
 };
+

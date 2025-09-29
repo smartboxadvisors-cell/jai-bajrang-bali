@@ -2,16 +2,32 @@
 import { Filters } from '../components/Filters';
 import { KpiCards } from '../components/KpiCards';
 import { Charts } from '../components/Charts';
+import { OccupancySummary } from '../components/OccupancySummary';
 import { useSheetData } from '../hooks/useSheetData';
-import { aggregateTotals } from '../lib/utils';
+import { aggregateTotals, computeOccupancySummary } from '../lib/utils';
+import { isValid, startOfDay } from 'date-fns';
 
 const initialFilters = Object.freeze({ date: null, from: null, to: null, search: '' });
 
+const resolveSelectedDate = (filters) => {
+  if (filters?.date && isValid(filters.date)) return filters.date;
+  if (filters?.to && isValid(filters.to)) return filters.to;
+  if (filters?.from && isValid(filters.from)) return filters.from;
+  return new Date();
+};
+
 export function Dashboard() {
   const [filters, setFilters] = useState(initialFilters);
-  const { filteredData, loading, error, refetch, lastUpdated } = useSheetData(filters);
+  const { rawData, filteredData, loading, error, refetch, lastUpdated } = useSheetData(filters);
 
   const totals = useMemo(() => aggregateTotals(filteredData), [filteredData]);
+
+  const selectedDate = useMemo(() => startOfDay(resolveSelectedDate(filters)), [filters]);
+
+  const occupancy = useMemo(
+    () => computeOccupancySummary(rawData, selectedDate),
+    [rawData, selectedDate]
+  );
 
   return (
     <div className="space-y-6">
@@ -45,11 +61,12 @@ export function Dashboard() {
 
       {!loading && !error && (
         <>
+          <OccupancySummary summary={occupancy} />
           <KpiCards totals={totals} lastUpdated={lastUpdated} />
           <Charts rows={filteredData} />
           {filteredData.length === 0 && (
             <p className="rounded-lg border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-              चयनित फिल्टर के लिए कोई डेटा उपलब्ध नहीं है।
+              चयनित फिल्टर के लिए कोई रिकॉर्ड उपलब्ध नहीं है
             </p>
           )}
         </>
