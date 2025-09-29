@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -13,7 +13,8 @@ import { Bar, Pie } from 'react-chartjs-2';
 import {
   buildDailyStackedDataset,
   buildGenderPieDataset,
-  buildOriginBarDataset
+  buildOriginBarDataset,
+  buildStateBarDataset
 } from '../lib/utils';
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
@@ -44,6 +45,7 @@ export function Charts({ rows }) {
 
   const pieData = useMemo(() => buildGenderPieDataset(debouncedRows), [debouncedRows]);
   const dailyData = useMemo(() => buildDailyStackedDataset(debouncedRows), [debouncedRows]);
+  const stateData = useMemo(() => buildStateBarDataset(debouncedRows, 12), [debouncedRows]);
   const originData = useMemo(() => buildOriginBarDataset(debouncedRows, 10), [debouncedRows]);
 
   return (
@@ -52,6 +54,21 @@ export function Charts({ rows }) {
         <h2 className="text-base font-semibold text-slate-700">लिंग आधारित वितरण</h2>
         <div className="mt-4 h-72">
           <Pie data={pieData} options={defaultOptions} />
+        </div>
+      </article>
+      <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-700">राज्यवार स्थायी पता</h2>
+        <div className="mt-4 h-72">
+          <Bar
+            data={stateData}
+            options={{
+              ...defaultOptions,
+              indexAxis: 'y',
+              scales: {
+                x: { beginAtZero: true }
+              }
+            }}
+          />
         </div>
       </article>
       <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-2">

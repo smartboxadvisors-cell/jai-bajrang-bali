@@ -415,6 +415,41 @@ export const buildDailyStackedDataset = (rows) => {
   };
 };
 
+export const buildStateBarDataset = (rows, limit = 10) => {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return {
+      labels: [],
+      datasets: [
+        { label: 'राज्य अनुसार अतिथि', data: [], backgroundColor: '#6366f1' }
+      ]
+    };
+  }
+
+  const counts = rows.reduce((acc, row) => {
+    const stateRaw = typeof row?.state === 'string' ? row.state.trim() : '';
+    const addressRaw = typeof row?.address === 'string' ? row.address.trim() : '';
+    const key = stateRaw || addressRaw || 'अज्ञात';
+    const total = safeNumber(row?.totalVisitors) || 1;
+    acc.set(key, (acc.get(key) || 0) + total);
+    return acc;
+  }, new Map());
+
+  const sorted = Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit);
+
+  return {
+    labels: sorted.map(([state]) => state),
+    datasets: [
+      {
+        label: 'राज्य अनुसार अतिथि',
+        data: sorted.map(([, count]) => count),
+        backgroundColor: '#6366f1'
+      }
+    ]
+  };
+};
+
 export const buildOriginBarDataset = (rows, limit = 10) => {
   const originCounts = rows.reduce((acc, row) => {
     const origin = row.fromWhere || 'अज्ञात';
