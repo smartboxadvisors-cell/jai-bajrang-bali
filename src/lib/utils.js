@@ -577,8 +577,3 @@ export const computeOccupancySummary = (rows, targetDate) => {
 };
 
 
-
-
-
-
-

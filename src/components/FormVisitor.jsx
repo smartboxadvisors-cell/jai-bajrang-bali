@@ -63,6 +63,67 @@ const validate = (form) => {
   return errors;
 };
 
+const DEVANAGARI_DIGITS = {
+  '\u0966': '0',
+  '\u0967': '1',
+  '\u0968': '2',
+  '\u0969': '3',
+  '\u096A': '4',
+  '\u096B': '5',
+  '\u096C': '6',
+  '\u096D': '7',
+  '\u096E': '8',
+  '\u096F': '9'
+};
+
+const normalizeDigitString = (value) =>
+  String(value).replace(/[\u0966-\u096F]/g, (char) => DEVANAGARI_DIGITS[char] ?? char);
+
+const pad2 = (value) => String(value).padStart(2, '0');
+
+const formatDateForSheet = (value) => {
+  if (!value) return '';
+  const normalized = normalizeDigitString(String(value));
+  const dateParts = normalized.split(/[-/]/);
+  if (dateParts.length === 3) {
+    const [part1, part2, part3] = dateParts;
+    if (part1.length === 4) {
+      return `${pad2(part3)}\/${pad2(part2)}\/${part1}`;
+    }
+    if (part3.length === 4) {
+      return `${pad2(part1)}\/${pad2(part2)}\/${part3}`;
+    }
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return normalized;
+  return `${pad2(date.getDate())}\/${pad2(date.getMonth() + 1)}\/${date.getFullYear()}`;
+};
+
+const formatTimeForSheet = (value) => {
+  if (!value) return '';
+  const normalized = normalizeDigitString(String(value).trim());
+  const timeParts = normalized.split(':');
+  if (timeParts.length >= 2) {
+    const [hour, minute, second = '00'] = timeParts;
+    return `${pad2(hour)}:${pad2(minute)}:${pad2(second)}`;
+  }
+  const parsed = new Date(`1970-01-01T${normalized}`);
+  if (Number.isNaN(parsed.getTime())) return normalized;
+  return `${pad2(parsed.getHours())}:${pad2(parsed.getMinutes())}:${pad2(parsed.getSeconds())}`;
+};
+
+const formatTimestampForSheet = (value) => {
+  if (!value) return '';
+  const normalized = normalizeDigitString(String(value).trim());
+  if (normalized.includes('T')) {
+    const [datePart, timePart = '00:00'] = normalized.split('T');
+    return `${formatDateForSheet(datePart)} ${formatTimeForSheet(timePart)}`.trim();
+  }
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return normalized;
+  return `${pad2(date.getDate())}\/${pad2(date.getMonth() + 1)}\/${date.getFullYear()} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`.trim();
+};
+
 const fieldConfig = [
   { name: 'entryNumber', label: 'Entry Number', type: 'text' },
   { name: 'manualEntryNumber', label: 'मॅन्युअल नोंदणी एंट्री नंबर', type: 'text' },
@@ -138,15 +199,29 @@ export function FormVisitor() {
 
     setIsSubmitting(true);
     try {
+      const now = new Date();
+      const formattedTimestamp = formatTimestampForSheet(form.timestamp || now.toISOString());
+      const formattedArrivalTime = formatTimeForSheet(
+        form.arrivalTime || `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`
+      );
+      const formattedExitDate = formatDateForSheet(form.exitDate);
+
+      const maleValue = Number(form.male) || 0;
+      const femaleValue = Number(form.female) || 0;
+      const childrenValue = Number(form.children) || 0;
+      const totalTravellersValue =
+        Number(form.totalTravellers) || maleValue + femaleValue + childrenValue;
+      const stayingTravellersValue = Number(form.stayingTravellers) || 0;
+
       const payload = {
         entryNumber: form.entryNumber.trim(),
         manualEntryNumber: form.manualEntryNumber.trim(),
-        timestamp: form.timestamp,
-        arrivalTime: form.arrivalTime,
+        timestamp: formattedTimestamp,
+        arrivalTime: formattedArrivalTime,
         name: form.name.trim(),
-        male: Number(form.male) || 0,
-        female: Number(form.female) || 0,
-        children: Number(form.children) || 0,
+        male: maleValue,
+        female: femaleValue,
+        children: childrenValue,
         address: form.address.trim(),
         pinCode: form.pinCode.trim(),
         state: form.state.trim(),
@@ -155,15 +230,15 @@ export function FormVisitor() {
         fromWhere: form.fromWhere.trim(),
         purpose: form.purpose.trim(),
         destination: form.destination.trim(),
-        exitDate: form.exitDate,
+        exitDate: formattedExitDate,
         photo: form.photo.trim(),
         eCard: form.eCard.trim(),
         incomeCard: form.incomeCard.trim(),
         otherIncomeCard: form.otherIncomeCard.trim(),
         roomNumber: form.roomNumber.trim(),
         email: form.email.trim(),
-        totalTravellers: Number(form.totalTravellers) || 0,
-        stayingTravellers: Number(form.stayingTravellers) || 0,
+        totalTravellers: totalTravellersValue,
+        stayingTravellers: stayingTravellersValue,
         genderSummary: form.genderSummary.trim(),
         occupancyStatus: form.occupancyStatus.trim()
       };
@@ -174,7 +249,38 @@ export function FormVisitor() {
           'Content-Type': 'text/plain;charset=utf-8'
         },
         mode: 'cors',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          ...payload,
+          sheetValues: [
+            payload.entryNumber,
+            payload.manualEntryNumber,
+            payload.timestamp,
+            payload.arrivalTime,
+            payload.name,
+            payload.male,
+            payload.female,
+            payload.children,
+            payload.address,
+            payload.pinCode,
+            payload.state,
+            payload.mobile,
+            payload.whatsapp,
+            payload.fromWhere,
+            payload.purpose,
+            payload.destination,
+            payload.exitDate,
+            payload.photo,
+            payload.eCard,
+            payload.incomeCard,
+            payload.otherIncomeCard,
+            payload.roomNumber,
+            payload.email,
+            payload.totalTravellers,
+            payload.stayingTravellers,
+            payload.genderSummary,
+            payload.occupancyStatus
+          ]
+        })
       });
 
       if (!response.ok) {
@@ -252,3 +358,5 @@ export function FormVisitor() {
     </form>
   );
 }
+
+
