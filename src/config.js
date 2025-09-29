@@ -7,13 +7,3 @@
 };
 
 export const sheetCsvUrl = (sheetId, sheetName) => `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-
-// export const sheetCsvUrl = (sheetId, sheetName, sheetGid, publishedUrl) => {
-//   if (publishedUrl && publishedUrl.trim()) {
-//     return publishedUrl;
-//   }
-//   if (sheetGid && String(sheetGid).trim()) {
-//     return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${sheetGid}`;
-//   }
-//   return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-// };

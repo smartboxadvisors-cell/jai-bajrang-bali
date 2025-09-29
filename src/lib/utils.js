@@ -29,7 +29,7 @@ const HEADER_MAP = {
   stayingTravellers: ['?????? ?????? ?? ?? ??? ??', 'Staying Travellers'],
   genderSummary: ['?????, ?????, ?????, ???? ???', 'Gender Summary'],
   occupancyStatus: ['Occupied/Empty', 'Status']
-}
+};
 
 const HEADER_ORDER = [
   'entryNumber',
@@ -67,7 +67,6 @@ const HEADER_INDEX = HEADER_ORDER.reduce((acc, key, index) => {
 }, {});
 
 let detectedColumns = null;
-\r\n
 const numberFields = ['male', 'female', 'children', 'totalTravellers', 'stayingTravellers'];
 
 const DEVANAGARI_DIGITS = {
@@ -576,6 +575,7 @@ export const computeOccupancySummary = (rows, targetDate) => {
     }
   };
 };
+
 
 
 
