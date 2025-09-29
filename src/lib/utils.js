@@ -1,5 +1,5 @@
 ﻿import Papa from 'papaparse';
-import { format, isValid, parse, parseISO, startOfDay, isWithinInterval } from 'date-fns';
+import { addDays, format, isValid, parse, parseISO, startOfDay, isWithinInterval } from 'date-fns';
 
 const HEADER_MAP = {
   timestamp: ['Timestamp'],
@@ -532,7 +532,16 @@ export const computeOccupancySummary = (rows, targetDate) => {
       return;
     }
 
-    const exitDay = row?.exitDate && isValid(row.exitDate) ? startOfDay(row.exitDate) : null;
+    const exitDay = (() => {
+      if (row?.exitDate && isValid(row.exitDate)) {
+        return startOfDay(row.exitDate);
+      }
+      if (arrivalDay) {
+        return addDays(arrivalDay, 6);
+      }
+      return null;
+    })();
+
     if (exitDay && exitDay < effectiveDate) {
       if (room) {
         occupiedRoomsSet.delete(room);
